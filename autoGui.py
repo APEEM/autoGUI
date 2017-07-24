@@ -1,5 +1,6 @@
 #import modules
 import pyautogui as auto
+import pickle
 
 auto.PAUSE = 1
 auto.FAILSAFE = True
@@ -29,7 +30,7 @@ class automate:
             auto.click()
             
         elif self.pri == 1:
-            auto.typewrite(self.message, interval = .5)
+            auto.typewrite(self.message, interval = .1)
             print(self.message)
                 
         elif self.enter == 1:
@@ -38,13 +39,15 @@ class automate:
 
 #this variable will contain all the step objects    
 step = []        
-        
+
+rs = 0 #variable used to initiate the loading a saved profile
+  
 #This loop alows the user to enter multiple steps
 while True:
     
     step.append(automate()) #creates a new object for each step at the begining of the loop
     
-    x = input('What would you like to do with this step: \n1=set location \n2=left click, \n3=type a message \n4=hit enter, \n9=runs steps\n')
+    x = input('What would you like to do with this step: \n1=set location \n2=left click, \n3=type a message, \n4=hit enter, \ns=save steps, \nrs= Run saved steps, \n9=runs steps\n')
     
     
     #this if block changes the variables in the object to determin which function is run
@@ -62,7 +65,17 @@ while True:
     
     elif x == '4': 
         step[len(step) - 1].enter = 1
-    
+
+    elif x == 's':
+        with open('company_data.pkl', 'wb') as output:
+            for g in range(len(step)-1):
+                pickle.dump(step[g], output, pickle.HIGHEST_PROTOCOL)
+                
+    elif x == 'rs':
+        rs = 1
+        break
+        
+            
     #breaks the loop when the user wants to run the steps         
     elif x == '9':
         break
@@ -70,15 +83,40 @@ while True:
     else:
         print('Please select a valid option')
         
-        
-l = input('How many times would you like these steps to run?\n') or '1'
+if rs !=1:        
+    l = input('How many times would you like these steps to run?\n') or '1'
 
 
+while True and rs != 1:    
+    for n in range(int(l)): #determines how many times the steps are run
+        for i in range(int(len(step) - 1)): #this loop call each step object sequentially
+            print("Step:", i + 1,",", "Loop count:" , n+1, ",", "Move: ", step[i].move,",", "Click: ", step[i].click,",", "print: ", step[i].pri,",", 'enter: ', step[i].enter )
+            step[i].doStuff() 
+    br = input('Would you like to run the steps again: y/n')
+    if br == 'n':
+        break
 
-for n in range(int(l)): #determines how many times the steps are run
-    for i in range(int(len(step) - 1)): #this loop call each step object sequentially
-        print("Step:", i + 1,",", "Loop count:" , n+1, ",", "Move: ", step[i].move,",", "Click: ", step[i].click,",", "print: ", step[i].pri,",", 'enter: ', step[i].enter )
-        step[i].doStuff() 
+#used to run saved profile
+if rs == 1:
+    redo = input('How many times would you like these steps to run?\n' ) or 1
+    input('Press enter to start saved profile\n')
+    for q in range(int(redo)):
+      
+        stepsFromSaved = []
+        b = 0
+        with open('company_data.pkl', 'rb') as i:
+            while True:
+                    
+                stepsFromSaved.append(None)
+                try:
+                    stepsFromSaved[b] = pickle.load(i)
+                except EOFError:
+                       break
+                b += 1
+                    
+            for g in range(len(stepsFromSaved) - 1):
+                stepsFromSaved[g].doStuff()
+
     
     
 input('Pres enter to exit')
